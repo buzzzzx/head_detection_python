@@ -1,46 +1,54 @@
 import cv2
 from numpy import *
+import time
+import pymysql
 
-# 初始化
+# initial
 cap = cv2.VideoCapture(0)
-num = 0
 
 face_cascade = cv2.CascadeClassifier(
-    'F:/Python/PycharmProjects/day01/OpenCVTest/featurelib/lbpcascade_frontalface.xml')
-"""
-face_cascade = cv2.CascadeClassifier(
-    'G:/head/data1/cascade.xml')
-"""
-people_num = []
+    'F:/Python/PycharmProjects/day01/OpenCVTest/featurelib/618_17stages_head_detection.xml')
 
+conn = pymysql.connect(host='192.168.43.254', port=3306,
+                       user='root', passwd='123456', db='head')
+cur = conn.cursor()
 
-#########################################
+t1 = time.time()
 
 while True:
     # get a frame
     ret, img = cap.read()
 
-    ####################### 检测人脸代码 #####################
-    grayimg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # 灰度转换
+    grayimg = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
     faces_rect = face_cascade.detectMultiScale(
-        grayimg, 1.2, 3)  # 得到一个矩形，faces是多个矩形（一个脸一个）
+        grayimg, 1.2, 3)
 
-    people_num.append(len(faces_rect))
-
-    # 将多个脸用框画出来
+    # show head
     for (x, y, w, h) in faces_rect:
         img = cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        # roi_gray = grayimg[y:y + h, x:x + w]
-        # roi_color = img[y:y + h, x:x + w]
+        cv2.putText(img, "Head No." + str(len(faces_rect)), (x, y),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 
-    cv2.imshow('FaceDetect', img)
+    cv2.imshow('HeadDetect', img)
     key = cv2.waitKey(10)
-    cv2.imwrite('pics/%s.header.jpg' % (str(num)), img)
-    num = num + 1
-    ############################################
+
+    t2 = time.time()
+    if int(t2 - t1) == 15:
+        people_num = len(faces_rect)
+        date_rec = time.strftime('%Y-%m-%d', time.localtime(t2))
+        time_rec = time.strftime('%X', time.localtime(t2))
+        data_one = cur.execute(
+            'insert into head_count(people_count, date, time) values(%s, %s, %s)', (people_num, date_rec, time_rec))
+        conn.commit()
+
+        t1 = t2
 
     if key & 0xFF == ord('q'):
         break
 
+
 cap.release()
 cv2.destroyAllWindows()
+cur.close()
+conn.close()
