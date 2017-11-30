@@ -7,10 +7,10 @@ import pymysql
 cap = cv2.VideoCapture(0)
 
 face_cascade = cv2.CascadeClassifier(
-    'F:/Python/PycharmProjects/day01/OpenCVTest/featurelib/618_17stages_head_detection.xml')
+    '618_17stages_head_detection.xml')
 
-conn = pymysql.connect(host='192.168.43.254', port=3306,
-                       user='root', passwd='123456', db='head')
+conn = pymysql.connect(host='127.0.01', port=3306,
+                       user='root', passwd='batman123', db='head_detection')
 cur = conn.cursor()
 
 t1 = time.time()
@@ -33,16 +33,16 @@ while True:
     cv2.imshow('HeadDetect', img)
     key = cv2.waitKey(10)
 
-    t2 = time.time()
-    if int(t2 - t1) == 15:
-        people_num = len(faces_rect)
-        date_rec = time.strftime('%Y-%m-%d', time.localtime(t2))
-        time_rec = time.strftime('%X', time.localtime(t2))
-        data_one = cur.execute(
-            'insert into head_count(people_count, date, time) values(%s, %s, %s)', (people_num, date_rec, time_rec))
-        conn.commit()
-
-        t1 = t2
+    # t2 = time.time()
+    # if int(t2 - t1) == 15:
+    #     people_num = len(faces_rect)
+    #     date_rec = time.strftime('%Y-%m-%d', time.localtime(t2))
+    #     time_rec = time.strftime('%X', time.localtime(t2))
+    #     data_one = cur.execute(
+    #         'insert into head_count(people_count, date, time) values(%s, %s, %s)', (people_num, date_rec, time_rec))
+    #     conn.commit()
+    #
+    #     t1 = t2
 
     if key & 0xFF == ord('q'):
         break
